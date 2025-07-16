@@ -1,8 +1,13 @@
+import java.util.Arrays;
+
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class WaterJugPuzzleSolver
 {
-    int a, b, c, d, e, f;
+    private int a, b, c; // Caps
+    private int d, e, f; // Goals
+
+    private final int[][] vars; // Variations
 
     public WaterJugPuzzleSolver(int a, int b, int c, int d, int e, int f)
     {
@@ -19,6 +24,39 @@ public class WaterJugPuzzleSolver
         this.d = d;
         this.e = e;
         this.f = f;
+
+        // Variations
+        // 2D array of b+1 rows, & a+1 columns
+        // +1 is needed because we need to use 0 as well (0 water in jug)
+//        vars = new int[b+1][a+1];
+        // TODO: fix this horrible array init
+        vars = new int[4][6];
+    }
+
+    private void resetVarsArr()
+    { // TODO: fix these loops' constrains (hard-coded values)
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 6; j++)
+            {
+//                vars[i][j] = (0,0,this.c);
+                vars[i][j] = -1;
+            }
+        }
+    }
+
+    // TODO: I'm a debugger, delete me
+    private void printVarsArr()
+    {
+        System.out.println(Arrays.deepToString(vars));
+    }
+
+    public void solve()
+    {
+        //
+//        System.out.println("I'm a solver");
+        resetVarsArr();
+        printVarsArr();
     }
 
 
@@ -27,12 +65,18 @@ public class WaterJugPuzzleSolver
 
     public static void main(String[] args)
     {
-        if (args.length != 6)
-        {
-            System.err.println("Usage: java WaterJugPuzzleSolver " +
-                    "<cap A> <cap B> <cap C> <goal A> <goal B> <goal C>");
-            System.exit(1);
-        }
+        // Commented for dev, uncomment later
+//        if (args.length != 6)
+//        {
+//            System.err.println("Usage: java WaterJugPuzzleSolver " +
+//                    "<cap A> <cap B> <cap C> <goal A> <goal B> <goal C>");
+//            System.exit(1);
+//        }
+
+        WaterJugPuzzleSolver solver = new
+                WaterJugPuzzleSolver(0, 0, 8, 0, 4, 4);
+
+        solver.solve();
 
         /* TODO: enter input checks:
         ------ Can be done in one function! ---------
@@ -50,7 +94,7 @@ public class WaterJugPuzzleSolver
          */
 
 
-
+        System.exit(0);
     }
 }
 
