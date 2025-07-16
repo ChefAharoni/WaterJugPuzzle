@@ -1,16 +1,34 @@
 import java.util.Arrays;
+import java.util.LinkedList;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class WaterJugPuzzleSolver
 {
+    private class StepTup
+    {
+        private int x, y, z;
+
+        public StepTup(int x, int y, int z)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
     private int a, b, c; // Caps
     private int d, e, f; // Goals
 
     private final int[][] vars; // Variations
 
+    // TODO: change from Integer type to a different type
+    private LinkedList<StepTup> step;
+
     public WaterJugPuzzleSolver(int a, int b, int c, int d, int e, int f)
     {
+        super(); // TODO: not sure if this is correct
+
         // a == 1; b == 2; c == 3; d == 4; e == 5; f == 6 (just numbering)
         // first three parameters (a,b,c) are the three jugs currently (0,0,8 in example)
         // last three (d,e,f) are the goal of the final state
@@ -97,6 +115,7 @@ public class WaterJugPuzzleSolver
         System.exit(0);
     }
 }
+
 
 // breadth-first
 // create a 2D array of linked lists that links their parent to see the solutions
