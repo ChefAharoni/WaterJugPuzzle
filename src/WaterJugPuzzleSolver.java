@@ -26,11 +26,13 @@ public class WaterJugPuzzleSolver
     private int a, b, c; // Caps
     private int d, e, f; // Goals
 
-    private final int[][] vars; // Variations
+//    private final int[][] vars; // Variations
+    private final LinkedList<StepTup>[][] vars; // Variations
 
     // TODO: change from Integer type to a different type
-    private LinkedList<StepTup> step;
+//    private LinkedList<StepTup> step;
 
+    @SuppressWarnings("unchecked")
     public WaterJugPuzzleSolver(int a, int b, int c, int d, int e, int f)
     {
         super(); // TODO: not sure if this is correct
@@ -54,7 +56,7 @@ public class WaterJugPuzzleSolver
         // +1 is needed because we need to use 0 as well (0 water in jug)
 //        vars = new int[b+1][a+1];
         // TODO: fix this horrible array init
-        vars = new int[4][6];
+        vars = new LinkedList[4][6];
     }
 
     private void resetVarsArr()
@@ -63,8 +65,8 @@ public class WaterJugPuzzleSolver
         {
             for (int j = 0; j < 6; j++)
             {
-//                vars[i][j] = (0,0,this.c);
-                vars[i][j] = -1;
+                vars[i][j] = new LinkedList<>();
+                vars[i][j].add(new StepTup(i, j, 0));
             }
         }
     }
@@ -72,13 +74,22 @@ public class WaterJugPuzzleSolver
     // TODO: I'm a debugger, delete me
     private void printVarsArr()
     {
-        System.out.println(Arrays.deepToString(vars));
+//        System.out.println(Arrays.deepToString(vars));
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 6; j++)
+            {
+                System.out.print(vars[i][j].toString() + (j+1 == 6 ? "" : ", "));
+            }
+
+            System.out.println();
+        }
     }
+
 
     public void solve()
     {
         //
-//        System.out.println("I'm a solver");
         resetVarsArr();
         printVarsArr();
     }
