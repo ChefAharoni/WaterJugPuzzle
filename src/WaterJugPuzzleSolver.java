@@ -1,7 +1,5 @@
 import java.util.LinkedList;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class WaterJugPuzzleSolver
 {
     private class StepTup implements Comparable<StepTup>
@@ -9,16 +7,38 @@ public class WaterJugPuzzleSolver
         private int a, b, c;
         private final int A_CAP, B_CAP, C_CAP; // capacity for each cap
 
-        public StepTup(int a, int b, int c)
+
+        public StepTup(int a, int b, int c, int aCap, int bCap, int cCap)
         {
             this.a = 0;
             this.b = 0;
-            this.c = c; // Jug C will always start out completely full
+            this.c = c;
 
-            this.A_CAP = a;
-            this.B_CAP = b;
-            this.C_CAP = c;
+            this.A_CAP = aCap;
+            this.B_CAP = bCap;
+            this.C_CAP = cCap;
         }
+
+//        public StepTup(int a, int b, int c)
+//        {
+//            this.a = a;
+//            this.b = b;
+//            this.c = c;
+//        }
+
+        // To copy the previous capacity
+        public StepTup(int aAmt, int bAmt, int cAmt, StepTup old)
+        {
+            this.a = aAmt;
+            this.b = bAmt;
+            this.c = cAmt;
+
+            // Capacity never change
+            this.A_CAP = old.getA_CAP();
+            this.B_CAP = old.getB_CAP();
+            this.C_CAP = old.getC_CAP();
+        }
+
 
         public int getA()
         {
@@ -106,7 +126,7 @@ public class WaterJugPuzzleSolver
 
     public WaterJugPuzzleSolver(int a, int b, int c, int d, int e, int f)
     {
-        super(); // TODO: not sure if this is correct
+//        super(); // TODO: not sure if this is correct
 
         // a == 1; b == 2; c == 3; d == 4; e == 5; f == 6 (just numbering)
         // first three parameters (a,b,c) are the three jugs currently (0,0,8 in example)
@@ -130,7 +150,8 @@ public class WaterJugPuzzleSolver
         vars = new LinkedList[4][6];
 
         // set the final state from the params
-        finalState = new StepTup(d, e, f);
+        // calling the capacity of the inital jugs (though it shouldn't matter)
+        finalState = new StepTup(d, e, f, a, b, c);
     }
 
 //    private void resetVarsArr()
@@ -148,26 +169,67 @@ public class WaterJugPuzzleSolver
 
     private void getWaysBFS()
     {
-        StepTup currState = new StepTup(a, b, c); // not sure if needed
+        // call constructor with capacity
+        StepTup currState = new StepTup(a, b, c, a, b, c); // not sure if needed
+
+        int debugFlag = 0;
 
 //        while (a != d && b != e && c != f)
-        while (currState != finalState)
+        while (currState != finalState && currState != null)
         {
             // TODO: add stop if no solution
+            // if exhausted (how to measure?)
 
             // 1) move c → a
-            moveWater(currState, Jug.C, Jug.A);
+            currState = moveWater(currState, Jug.C, Jug.A);
+            if (currState != null && vars[a][b] != null ) // not in vars
+            {
+                vars[a][b] = new LinkedList<>();
+                vars[a][b].add(currState);
+            }
+
             // 2) move b → a
+            currState = moveWater(currState, Jug.B, Jug.A);
+            if (currState != null && vars[a][b] != null ) // not in vars
+            {
+                vars[a][b] = new LinkedList<>();
+                vars[a][b].add(currState);
+            }
 
             // 3) move c → b
+            currState = moveWater(currState, Jug.C, Jug.B);
+            if (currState != null && vars[a][b] != null ) // not in vars
+            {
+                vars[a][b] = new LinkedList<>();
+                vars[a][b].add(currState);
+            }
 
             // 4) move a → b
+            currState = moveWater(currState, Jug.A, Jug.B);
+            if (currState != null && vars[a][b] != null ) // not in vars
+            {
+                vars[a][b] = new LinkedList<>();
+                vars[a][b].add(currState);
+            }
 
             // 5) move b → c
+            currState = moveWater(currState, Jug.B, Jug.C);
+            if (currState != null && vars[a][b] != null ) // not in vars
+            {
+                vars[a][b] = new LinkedList<>();
+                vars[a][b].add(currState);
+            }
 
             // 6) move a → c
+            currState = moveWater(currState, Jug.A, Jug.C);
+            if (currState != null && vars[a][b] != null ) // not in vars
+            {
+                vars[a][b] = new LinkedList<>();
+                vars[a][b].add(currState);
+            }
 
-
+            debugFlag++;
+            if (debugFlag > 10) break;
         }
     }
 
@@ -177,16 +239,95 @@ public class WaterJugPuzzleSolver
      */
     private StepTup moveWater(StepTup state, Jug from, Jug to)
     {
-        StepTup newState = new StepTup(state.a, state.b, state.c); // copy of
-        switch(from)
+        // TODO: perhaps it's cheaper to change the reference instead of creating a new one?
+        // Some switch cases uses enhanced so that intellij won't complain
+        // on (false) duplicated code
+
+        if (state == null) return null;
+        System.out.println("Moving from " + from + " to " + to);
+        System.out.println("Current state: " + state);
+        System.out.println("----------------------------------------");
+
+        // extract current amounts
+        int aAmt = state.getA(), bAmt = state.getB(), cAmt = state.getC();
+
+        // extract capacities
+        int aCap = state.getA_CAP(), bCap = state.getB_CAP(), cCap = state.getC_CAP();
+
+        // figure out `from` and `to` amounts & caps
+        int amountFrom, amountTo, capacityTo;
+
+        switch (from)
         {
-            case A:
-
+            case A: amountFrom = aAmt; break;
+            case B: amountFrom = bAmt; break;
+            case C: amountFrom = cAmt; break;
+            default: System.out.println("null"); return null; // error
         }
-        newState.to = newState.from - (newState.from - newState.toCapacity);
-        newState.from = newState.from - newState.to;
 
-        return newState;
+        switch (to)
+        {
+            case A: amountTo = aAmt; capacityTo = aCap; break;
+            case B: amountTo = bAmt; capacityTo = bCap; break;
+            case C: amountTo = cAmt; capacityTo = cCap; break;
+            default: System.out.println("null"); return null; // error
+        }
+
+        // compute how much we can transfer
+//        int transferable = amountFrom - (amountFrom - capacityTo);
+        int transferable = Math.min(amountFrom, capacityTo - amountTo);
+
+        amountFrom -= transferable;
+        amountTo   += transferable;
+
+
+        System.out.println("transferable: " + transferable);
+//        System.out.println("amountFrom: " + amountFrom);
+//        System.out.println("amountTo: " + amountTo);
+
+
+        // write back into aAmt, bAmt, cAmt
+        switch (from)
+        {
+            case A -> aAmt = amountFrom;
+            case B -> bAmt = amountFrom;
+            case C -> cAmt = amountFrom;
+            default ->
+            {
+                System.out.println("null");
+                return null; // error
+            }
+        }
+
+        switch (to)
+        {
+            case A -> aAmt = amountTo;
+            case B -> bAmt = amountTo;
+            case C -> cAmt = amountTo;
+            default ->
+            {
+                System.out.println("null");
+                return null; // error
+            }
+        }
+
+
+//        if (amountFrom < 0) return null;
+        if (amountFrom < 0) return state;
+
+        // Print Debugger
+//        System.out.println("A amount: " + aAmt);
+//        System.out.println("B amount: " + bAmt);
+//        System.out.println("C amount: " + cAmt);
+
+        System.out.println("Moved " + amountFrom + "oz water from " + from +
+                " to " + to);
+        StepTup newState = new StepTup(aAmt, bAmt, cAmt, state);
+        System.out.println(newState);
+        System.out.println("----------------------------------------\n\n");
+
+        // return new state
+        return new StepTup(aAmt, bAmt, cAmt, state);
     }
 
 
@@ -198,7 +339,9 @@ public class WaterJugPuzzleSolver
         {
             for (int j = 0; j < 6; j++)
             {
-                System.out.print(vars[i][j].toString() + (j + 1 == 6 ? "" : ", "));
+                if (vars[i][j] == null) System.out.print(""); // ? needed
+                else
+                    System.out.print(vars[i][j].toString() + (j + 1 == 6 ? "" : ", "));
             }
 
             System.out.println();
@@ -208,6 +351,7 @@ public class WaterJugPuzzleSolver
 
     public void solve()
     {
+        getWaysBFS();
         //
 //        resetVarsArr();
         printVarsArr(); // debugger
@@ -225,7 +369,7 @@ public class WaterJugPuzzleSolver
 //        }
 
         WaterJugPuzzleSolver solver = new
-                WaterJugPuzzleSolver(0, 0, 8, 0, 4, 4);
+                WaterJugPuzzleSolver(3, 5, 8, 0, 4, 4);
 
         solver.solve();
 
