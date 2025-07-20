@@ -1,5 +1,8 @@
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
 
 public class WaterJugPuzzleSolver
 {
@@ -433,23 +436,6 @@ public class WaterJugPuzzleSolver
                 v[0], v[1], v[2],
                 v[3], v[4], v[5]
         ).solve();
-
-
-
-        /* TODO: enter input checks:
-        ------ Can be done in one function! ---------
-        1. $ java WaterJugPuzzleSolver 3 5 X 0 4 4
-        Error: Invalid capacity 'X' for jug C.
-
-        2. $ java WaterJugPuzzleSolver 3 5 8 0 R 4
-        Error: Invalid goal 'R' for jug B.
-
-        3. $ java WaterJugPuzzleSolver 3 5 8 4 0 4
-        Error: Goal cannot exceed capacity of jug A.
-
-        4. $ java WaterJugPuzzleSolver 3 5 8 0 4 5
-        Error: Total gallons in goal state must be equal to the capacity of jug C.
-         */
 
 
         System.exit(0);
