@@ -309,7 +309,7 @@ public class WaterJugPuzzleSolver
 
         // accumulate into a single StringBuilder
         StringBuilder out = new StringBuilder(path.size() * 30);
-        out.append("Initial state: ").append(path.getFirst()).append('\n');
+        out.append("Initial state. ").append(path.getFirst()).append('\n');
 
         for (int i = 1; i < path.size(); i++)
         {
