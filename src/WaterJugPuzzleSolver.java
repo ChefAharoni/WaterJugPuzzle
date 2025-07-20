@@ -158,7 +158,7 @@ public class WaterJugPuzzleSolver
             }
         }
 
-        System.out.println("No Solution.");
+        System.out.println("No solution.");
     }
 
     private void getWaysBFS(StepTup state)
