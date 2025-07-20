@@ -1,5 +1,8 @@
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class WaterJugPuzzleSolver
 {
@@ -8,9 +11,8 @@ public class WaterJugPuzzleSolver
         private int a, b, c;
         private final int A_CAP, B_CAP, C_CAP; // capacity for each cap
 
-        // All the states to reach from this state
-        private LinkedList<StepTup> parentStates = new LinkedList<>();
-
+        // parent of this state
+        private StepTup parent;
 
         public StepTup(int a, int b, int c, int aCap, int bCap, int cCap)
         {
@@ -36,27 +38,15 @@ public class WaterJugPuzzleSolver
             this.C_CAP = old.getC_CAP();
         }
 
-        public void addParentState(StepTup state)
+        public void setParent(StepTup parent)
         {
-            this.parentStates.add(state);
+            this.parent = parent;
         }
 
-        public LinkedList<StepTup> getParentStates()
+        public StepTup getParent()
         {
-            return this.parentStates;
+            return this.parent;
         }
-
-        /**
-         * Prints the subStates in reverse order
-         */
-        public void printParentStates()
-        {
-            for (int  i = parentStates.size() - 1; i >= 0; i--)
-            {
-                System.out.println(parentStates.get(i).toString());
-            }
-        }
-
 
         public int getA()
         {
@@ -132,9 +122,6 @@ public class WaterJugPuzzleSolver
     private int a, b, c; // Caps
     private int d, e, f; // Goals
 
-    // Amount of traverses to perform for each state
-    private final int TRAVERSES_NUM = 6;
-
     // Numeric representation of the water jugs
     private enum Jug {A, B, C};
 
@@ -186,24 +173,60 @@ public class WaterJugPuzzleSolver
 
             if (state.compareTo(finalState) == 0)
             {
-                System.out.println(state.toString());
-                targetReached(state);
+                printSolutionPath(state);
                 break;
             }
-            System.out.println("\n----------------------------\n");
         }
     }
 
-    private void targetReached(StepTup state)
+    private void printSolutionPath(StepTup goal)
     {
-        state.printParentStates();
+        // build the path from goal back to the start
+        List<StepTup> path = new ArrayList<>();
+        for (StepTup cur = goal; cur != null; cur = cur.getParent())
+            path.add(cur);
+
+
+        // reverse so it goes start → goal
+        Collections.reverse(path);
+
+        // print the initial state
+        System.out.println("Initial state: " + path.get(0));
+
+        // for each step, compute delta and print the pour
+        for (int i = 1; i < path.size(); i++)
+        {
+            StepTup from = path.get(i - 1);
+            StepTup to   = path.get(i);
+
+            int da = to.getA() - from.getA();
+            int db = to.getB() - from.getB();
+            int dc = to.getC() - from.getC();
+
+            // Determine source and destination jugs
+            String src = da < 0 ? "A" : db < 0 ? "B" : "C";
+            String dst = da > 0 ? "A" : db > 0 ? "B" : "C";
+
+            // Compute the actual amount moved (only one delta is non-zero)
+            int moved;
+            if (da != 0) moved = Math.abs(da);
+            else if (db != 0) moved = Math.abs(db);
+            else moved = Math.abs(dc);
+
+            // Print the instruction
+            System.out.printf(
+                    "Pour %d gallons from %s to %s. %s%n",
+                    moved, src, dst, to
+            );
+        }
     }
 
     private void getWaysBFS(StepTup state)
     {
-        StepTup newState;
         StepTup candidate;
 
+        // Amount of traverses to perform for each state
+        int TRAVERSES_NUM = 6;
         for (int i = 0; i < TRAVERSES_NUM; i++)
         {
             candidate = switch (i)
@@ -218,19 +241,16 @@ public class WaterJugPuzzleSolver
             };
 
             if (candidate == null) continue;
+
             int x = candidate.getA(), y = candidate.getB();
             if (vars[x][y] == null)
             {
-                newState = candidate;
-                taskPool.add(newState);
-                vars[x][y] = newState;
-            }  else
-                newState = vars[x][y];
-
-            newState.addParentState(state);
+                candidate.setParent(state);
+                vars[x][y] = candidate;
+                taskPool.add(candidate);
             }
+        }
     }
-
 
     /**
      * Moves water from `from` jug to `to` jug
@@ -313,20 +333,7 @@ public class WaterJugPuzzleSolver
             }
         }
 
-
-//        if (amountFrom < 0) return null;
         if (amountFrom < 0) return state;
-
-        // Print Debugger
-//        System.out.println("A amount: " + aAmt);
-//        System.out.println("B amount: " + bAmt);
-//        System.out.println("C amount: " + cAmt);
-//        if (amountFrom > 0)
-//            System.out.println("Moved " + amountFrom + "oz water from " +
-//                    from + " to " + to);
-//        StepTup newState = new StepTup(aAmt, bAmt, cAmt, state);
-//        System.out.println(newState);
-//        System.out.println("----------------------------------------\n\n");
 
         // return new state
         return new StepTup(aAmt, bAmt, cAmt, state);
@@ -356,7 +363,6 @@ public class WaterJugPuzzleSolver
         vars[a][b] = startState; // add init state to matrix
 
         getWaysBFS(startState);
-        System.out.println("Task Pool: " + taskPool);
 //        setDemoVals();
 //        getWaysBFS();
 //        resetVarsArr();
@@ -400,22 +406,3 @@ public class WaterJugPuzzleSolver
         System.exit(0);
     }
 }
-
-
-// breadth-first
-// create a 2D array of linked lists that links their parent to see the solutions
-// the order should then be entered into an array list (or optimization of it)
-// and then print it in reverse order
-// the 2D array would have (a,b)
-/*
-
-        0       1       2       3       4       5
-    0 (0,0,8)
-    1
-    2
-    3 (3,0,5)
-
-(3,0,5) --> (0,0,8)
-(0,0,8) is the parent (the solution that leads to (3,0,5))
-
- */
