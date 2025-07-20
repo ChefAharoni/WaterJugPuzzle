@@ -98,8 +98,7 @@ public class WaterJugPuzzleSolver
         @Override
         public boolean equals(Object obj) {
             if (this == obj) return true;
-            if (!(obj instanceof StepTup)) return false;
-            StepTup other = (StepTup) obj;
+            if (!(obj instanceof StepTup other)) return false;
             return a == other.a && b == other.b && c == other.c;
         }
 
@@ -129,7 +128,7 @@ public class WaterJugPuzzleSolver
     private Queue<StepTup> taskPool;
     StepTup finalState;
 //    private final StepTup[][] vars; // Variations
-    private Set<StepTup> visited = new HashSet<>();
+    private final Set<StepTup> visited;
 
     public WaterJugPuzzleSolver(int a, int b, int c, int d, int e, int f)
     {
@@ -150,12 +149,10 @@ public class WaterJugPuzzleSolver
         // Variations
         // 2D array of b+1 rows, & a+1 columns
         // +1 is needed because we need to use 0 as well (0 water in jug)
-//        visited = new StepTup[a + 1][b + 1];
         this.visited = new HashSet<>();
         // set the final state from the params
         StepTup tmpState = new StepTup(d, e, f, d, e, f);
         finalState = new StepTup(d, e, f, tmpState);
-//        this.taskPool = new LinkedList<>();
         this.taskPool = new ArrayDeque<>();
     }
 
@@ -201,19 +198,41 @@ public class WaterJugPuzzleSolver
      * Ensures no more than capacity is moved
      */
     private StepTup moveWater(StepTup state, int from, int to) {
-        int[] amounts = {state.getA(), state.getB(), state.getC()};
-        int[] capacities = {state.getA_CAP(), state.getB_CAP(), state.getC_CAP()};
+        // Direct access - no arrays
+        int amountFrom, amountTo, capacityTo;
 
-        if (amounts[from] == 0 || amounts[to] == capacities[to]) {
-            return null; // No water to pour or destination full
+        switch (from) {
+            case 0: amountFrom = state.getA(); break;
+            case 1: amountFrom = state.getB(); break;
+            default: amountFrom = state.getC(); break;
         }
 
-        int pourAmount = Math.min(amounts[from], capacities[to] - amounts[to]);
+        switch (to) {
+            case 0: amountTo = state.getA(); capacityTo = state.getA_CAP(); break;
+            case 1: amountTo = state.getB(); capacityTo = state.getB_CAP(); break;
+            default: amountTo = state.getC(); capacityTo = state.getC_CAP(); break;
+        }
 
-        amounts[from] -= pourAmount;
-        amounts[to] += pourAmount;
+        if (amountFrom == 0 || amountTo == capacityTo) return null;
 
-        return new StepTup(amounts[0], amounts[1], amounts[2], state);
+        int pourAmount = Math.min(amountFrom, capacityTo - amountTo);
+
+        // Calculate new state directly
+        int newA = state.getA(), newB = state.getB(), newC = state.getC();
+
+        switch (from) {
+            case 0: newA -= pourAmount; break;
+            case 1: newB -= pourAmount; break;
+            default: newC -= pourAmount; break;
+        }
+
+        switch (to) {
+            case 0: newA += pourAmount; break;
+            case 1: newB += pourAmount; break;
+            default: newC += pourAmount; break;
+        }
+
+        return new StepTup(newA, newB, newC, state);
     }
 
     private void printSolutionPath(StepTup goal)
