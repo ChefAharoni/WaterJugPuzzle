@@ -179,46 +179,42 @@ public class WaterJugPuzzleSolver
         }
     }
 
-    private void printSolutionPath(StepTup goal)
-    {
-        // build the path from goal back to the start
+    private void printSolutionPath(StepTup goal) {
+        // build the path backwards
         List<StepTup> path = new ArrayList<>();
         for (StepTup cur = goal; cur != null; cur = cur.getParent())
             path.add(cur);
-
-
-        // reverse so it goes start → goal
         Collections.reverse(path);
 
-        // print the initial state
-        System.out.println("Initial state: " + path.get(0));
+        // accumulate into a single StringBuilder
+        StringBuilder out = new StringBuilder(path.size() * 30);
+        out.append("Initial state: ").append(path.getFirst()).append('\n');
 
-        // for each step, compute delta and print the pour
-        for (int i = 1; i < path.size(); i++)
-        {
-            StepTup from = path.get(i - 1);
-            StepTup to   = path.get(i);
-
+        for (int i = 1; i < path.size(); i++) {
+            StepTup from = path.get(i - 1), to = path.get(i);
             int da = to.getA() - from.getA();
             int db = to.getB() - from.getB();
             int dc = to.getC() - from.getC();
 
-            // Determine source and destination jugs
             String src = da < 0 ? "A" : db < 0 ? "B" : "C";
             String dst = da > 0 ? "A" : db > 0 ? "B" : "C";
+            int moved = da != 0 ? Math.abs(da)
+                    : db != 0 ? Math.abs(db)
+                    : Math.abs(dc);
 
-            // Compute the actual amount moved (only one delta is non-zero)
-            int moved;
-            if (da != 0) moved = Math.abs(da);
-            else if (db != 0) moved = Math.abs(db);
-            else moved = Math.abs(dc);
-
-            // Print the instruction
-            System.out.printf(
-                    "Pour %d gallons from %s to %s. %s%n",
-                    moved, src, dst, to
-            );
+            // simple concatenation, no format parsing
+            out.append("Pour ")
+                    .append(moved)
+                    .append(" gallons from ")
+                    .append(src)
+                    .append(" to ")
+                    .append(dst)
+                    .append(". ")
+                    .append(to)
+                    .append('\n');
         }
+
+        System.out.print(out);
     }
 
     private void getWaysBFS(StepTup state)
