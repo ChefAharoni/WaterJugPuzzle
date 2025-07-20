@@ -149,13 +149,15 @@ public class WaterJugPuzzleSolver
         while (!taskPool.isEmpty())
         {
             StepTup state = taskPool.poll();
-            getWaysBFS(state); // get child's of pool's head
 
             if (state.compareTo(finalState) == 0)
             {
                 printSolutionPath(state);
                 break;
             }
+
+            getWaysBFS(state); // get child's of pool's head
+
         }
 
         System.out.println("No solution.");
