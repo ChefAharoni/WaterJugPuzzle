@@ -4,7 +4,9 @@ public class WaterJugPuzzleSolver
 {
     private static class StepTup implements Comparable<StepTup>
     {
-        private int a, b, c;
+        private final int a;
+        private final int b;
+        private final int c;
         private final int A_CAP, B_CAP, C_CAP; // capacity for each cap
 
         // parent of this state
