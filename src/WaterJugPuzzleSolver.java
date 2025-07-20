@@ -1,8 +1,4 @@
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Collections;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
 public class WaterJugPuzzleSolver
 {
@@ -99,6 +95,19 @@ public class WaterJugPuzzleSolver
                     .append(')').toString();
         }
 
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (!(obj instanceof StepTup)) return false;
+            StepTup other = (StepTup) obj;
+            return a == other.a && b == other.b && c == other.c;
+        }
+
+        @Override
+        public int hashCode() {
+            return (a << 16) | (b << 8) | c;
+        }
+
         /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
            ~~~~~~~~~~~~~~~~~~~~~~ END OF StepTup CLASS ~~~~~~~~~~~~~~~~~~~~~~
            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -114,15 +123,13 @@ public class WaterJugPuzzleSolver
     private int f;
 
     // Numeric representation of the water jugs
-    private enum Jug
-    {A, B, C}
-
-    ;
+    private enum Jug {A, B, C};
 
     // Pool of all the states to run
     private Queue<StepTup> taskPool;
     StepTup finalState;
-    private final StepTup[][] vars; // Variations
+//    private final StepTup[][] vars; // Variations
+    private Set<StepTup> visited = new HashSet<>();
 
     public WaterJugPuzzleSolver(int a, int b, int c, int d, int e, int f)
     {
@@ -143,12 +150,13 @@ public class WaterJugPuzzleSolver
         // Variations
         // 2D array of b+1 rows, & a+1 columns
         // +1 is needed because we need to use 0 as well (0 water in jug)
-        vars = new StepTup[a + 1][b + 1];
-
+//        visited = new StepTup[a + 1][b + 1];
+        this.visited = new HashSet<>();
         // set the final state from the params
         StepTup tmpState = new StepTup(d, e, f, d, e, f);
         finalState = new StepTup(d, e, f, tmpState);
-        this.taskPool = new LinkedList<>();
+//        this.taskPool = new LinkedList<>();
+        this.taskPool = new ArrayDeque<>();
     }
 
     private void advancePoolBFS()
@@ -171,31 +179,19 @@ public class WaterJugPuzzleSolver
 
     private void getWaysBFS(StepTup state)
     {
-        StepTup candidate;
+        // Reuse array to avoid repeated allocations
+        StepTup[] moves = new StepTup[6];
+        moves[0] = moveWater(state, 2, 0); // C to A
+        moves[1] = moveWater(state, 1, 0); // B to A
+        moves[2] = moveWater(state, 2, 1); // C to B
+        moves[3] = moveWater(state, 0, 1); // A to B
+        moves[4] = moveWater(state, 1, 2); // B to C
+        moves[5] = moveWater(state, 0, 2); // A to C
 
-        // Amount of traverses to perform for each state
-        int TRAVERSES_NUM = 6;
-        for (int i = 0; i < TRAVERSES_NUM; i++)
-        {
-            candidate = switch (i)
-            {
-                case 0 -> moveWater(state, Jug.C, Jug.A);
-                case 1 -> moveWater(state, Jug.B, Jug.A);
-                case 2 -> moveWater(state, Jug.C, Jug.B);
-                case 3 -> moveWater(state, Jug.A, Jug.B);
-                case 4 -> moveWater(state, Jug.B, Jug.C);
-                default -> // case 5
-                        moveWater(state, Jug.A, Jug.C);
-            };
-
-            if (candidate == null) continue;
-
-            int x = candidate.getA(), y = candidate.getB();
-            if (vars[x][y] == null)
-            {
-                candidate.setParent(state);
-                vars[x][y] = candidate;
-                taskPool.add(candidate);
+        for (StepTup move : moves) {
+            if (move != null && visited.add(move)) {  // add() returns false if already present
+                move.setParent(state);
+                taskPool.offer(move);
             }
         }
     }
@@ -204,106 +200,20 @@ public class WaterJugPuzzleSolver
      * Moves water from `from` jug to `to` jug
      * Ensures no more than capacity is moved
      */
-    private StepTup moveWater(StepTup state, Jug from, Jug to)
-    {
-        // TODO: perhaps it's cheaper to change the reference instead of creating a new one?
-        // Some switch cases uses enhanced so that intellij won't complain
-        // on (false) duplicated code
+    private StepTup moveWater(StepTup state, int from, int to) {
+        int[] amounts = {state.getA(), state.getB(), state.getC()};
+        int[] capacities = {state.getA_CAP(), state.getB_CAP(), state.getC_CAP()};
 
-        if (state == null) return null;
-//        System.out.println("Moving from " + from + " to " + to);
-//        System.out.println("Current state: " + state);
-//        System.out.println("----------------------------------------");
-
-        // extract current amounts
-        int aAmt = state.getA(), bAmt = state.getB(), cAmt = state.getC();
-
-        // extract capacities
-        int aCap = state.getA_CAP(), bCap = state.getB_CAP(), cCap = state.getC_CAP();
-
-        // figure out `from` and `to` amounts & caps
-        int amountFrom, amountTo, capacityTo;
-
-        switch (from)
-        {
-            case A:
-                amountFrom = aAmt;
-                break;
-            case B:
-                amountFrom = bAmt;
-                break;
-            case C:
-                amountFrom = cAmt;
-                break;
-            default:
-                System.out.println("null");
-                return null; // error
+        if (amounts[from] == 0 || amounts[to] == capacities[to]) {
+            return null; // No water to pour or destination full
         }
 
-        switch (to)
-        {
-            case A:
-                amountTo = aAmt;
-                capacityTo = aCap;
-                break;
-            case B:
-                amountTo = bAmt;
-                capacityTo = bCap;
-                break;
-            case C:
-                amountTo = cAmt;
-                capacityTo = cCap;
-                break;
-            default:
-                System.out.println("null");
-                return null; // error
-        }
+        int pourAmount = Math.min(amounts[from], capacities[to] - amounts[to]);
 
-        // compute how much we can transfer
-//        int transferable = amountFrom - (amountFrom - capacityTo);
-        int transferable = Math.min(amountFrom, capacityTo - amountTo);
+        amounts[from] -= pourAmount;
+        amounts[to] += pourAmount;
 
-        if (transferable <= 0)
-            return null;
-
-        // TODO: check transferable math:max of c out of the capacity
-
-        amountFrom -= transferable;
-        amountTo += transferable;
-
-//        System.out.println("transferable: " + transferable);
-//        System.out.println("amountFrom: " + amountFrom);
-//        System.out.println("amountTo: " + amountTo);
-
-        // write back into aAmt, bAmt, cAmt
-        switch (from)
-        {
-            case A -> aAmt = amountFrom;
-            case B -> bAmt = amountFrom;
-            case C -> cAmt = amountFrom;
-            default ->
-            {
-                System.out.println("null");
-                return null; // error
-            }
-        }
-
-        switch (to)
-        {
-            case A -> aAmt = amountTo;
-            case B -> bAmt = amountTo;
-            case C -> cAmt = amountTo;
-            default ->
-            {
-                System.out.println("null");
-                return null; // error
-            }
-        }
-
-        if (amountFrom < 0) return state;
-
-        // return new state
-        return new StepTup(aAmt, bAmt, cAmt, state);
+        return new StepTup(amounts[0], amounts[1], amounts[2], state);
     }
 
     private void printSolutionPath(StepTup goal)
@@ -350,7 +260,8 @@ public class WaterJugPuzzleSolver
     public void solve()
     {
         StepTup startState = new StepTup(a, b, c, a, b, c);
-        vars[a][b] = startState; // add init state to matrix
+//        vars[a][b] = startState; // add init state to matrix
+        visited.add(startState); // add init state to matrix
 
         if (startState.compareTo(finalState) == 0)
         {
