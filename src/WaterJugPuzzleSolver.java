@@ -148,14 +148,19 @@ public class WaterJugPuzzleSolver
         this.e = e;
         this.f = f;
 
+        // Calculate optimal HashSet size
+        int estimatedStates = Math.max(64, (a + 1) * (b + 1) / 2);
+        int initialCapacity = (int) (estimatedStates / 0.75) + 1;
+
+        this.visited = new HashSet<>(initialCapacity);
+        this.taskPool = new ArrayDeque<>(Math.min(initialCapacity / 4, 256));
+
         // Variations
         // 2D array of b+1 rows, & a+1 columns
         // +1 is needed because we need to use 0 as well (0 water in jug)
-        this.visited = new HashSet<>();
         // set the final state from the params
         StepTup tmpState = new StepTup(d, e, f, d, e, f);
         finalState = new StepTup(d, e, f, tmpState);
-        this.taskPool = new ArrayDeque<>();
     }
 
     private void advancePoolBFS()
