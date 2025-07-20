@@ -175,9 +175,10 @@ public class WaterJugPuzzleSolver
     }
 
 
+    private final StepTup[] movesCache = new StepTup[6];
+
     private void getWaysBFS(StepTup state)
     {
-        StepTup[] movesCache = new StepTup[6];
         // Reuse array instead of creating new one
         movesCache[0] = moveWater(state, 2, 0); // C to A
         movesCache[1] = moveWater(state, 1, 0); // B to A
@@ -301,10 +302,8 @@ public class WaterJugPuzzleSolver
     private static boolean isDigitsOnly(String s) {
         if (s.isEmpty()) return false;
         for (int i = 0; i < s.length(); i++) {
-            int c = s.charAt(i);
-            if ((c - '0') >>> 31 != 0 || (c - '9' - 1) >>> 31 == 0) { // Branchless check
-                return false;
-            }
+            char c = s.charAt(i);
+            if (c < '0' || c > '9') return false;
         }
         return true;
     }
