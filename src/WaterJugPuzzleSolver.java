@@ -337,6 +337,7 @@ public class WaterJugPuzzleSolver
         }
 
         System.out.print(out);
+        System.exit(0);
     }
 
     public void solve()
@@ -354,6 +355,8 @@ public class WaterJugPuzzleSolver
         getWaysBFS(startState);
 
         advancePoolBFS();
+
+
     }
 
 
