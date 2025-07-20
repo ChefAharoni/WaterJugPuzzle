@@ -174,19 +174,20 @@ public class WaterJugPuzzleSolver
         System.out.println("No solution.");
     }
 
+
     private void getWaysBFS(StepTup state)
     {
-        // Reuse array to avoid repeated allocations
-        StepTup[] moves = new StepTup[6];
-        moves[0] = moveWater(state, 2, 0); // C to A
-        moves[1] = moveWater(state, 1, 0); // B to A
-        moves[2] = moveWater(state, 2, 1); // C to B
-        moves[3] = moveWater(state, 0, 1); // A to B
-        moves[4] = moveWater(state, 1, 2); // B to C
-        moves[5] = moveWater(state, 0, 2); // A to C
+        StepTup[] movesCache = new StepTup[6];
+        // Reuse array instead of creating new one
+        movesCache[0] = moveWater(state, 2, 0); // C to A
+        movesCache[1] = moveWater(state, 1, 0); // B to A
+        movesCache[2] = moveWater(state, 2, 1); // C to B
+        movesCache[3] = moveWater(state, 0, 1); // A to B
+        movesCache[4] = moveWater(state, 1, 2); // B to C
+        movesCache[5] = moveWater(state, 0, 2); // A to C
 
-        for (StepTup move : moves) {
-            if (move != null && visited.add(move)) {  // add() returns false if already present
+        for (StepTup move : movesCache) {
+            if (move != null && visited.add(move)) {
                 move.setParent(state);
                 taskPool.offer(move);
             }
@@ -300,7 +301,8 @@ public class WaterJugPuzzleSolver
     private static boolean isDigitsOnly(String s) {
         if (s.isEmpty()) return false;
         for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) < '0' || s.charAt(i) > '9') {
+            int c = s.charAt(i);
+            if ((c - '0') >>> 31 != 0 || (c - '9' - 1) >>> 31 == 0) { // Branchless check
                 return false;
             }
         }
