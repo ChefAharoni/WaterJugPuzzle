@@ -367,6 +367,16 @@ public class WaterJugPuzzleSolver
     }
 
 
+    private static boolean isDigitsOnly(String s) {
+        if (s.isEmpty()) return false;
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) < '0' || s.charAt(i) > '9') {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private static int[] checkInput(String[] args) {
         // arg count
         if (args.length != 6) {
@@ -379,21 +389,16 @@ public class WaterJugPuzzleSolver
 
         // numeric check & parse
         int[] vals = new int[6];
+        String[] jugNames = {"A", "B", "C", "A", "B", "C"};
+        String[] types = {"capacity", "capacity", "capacity", "goal", "goal", "goal"};
+
         for (int i = 0; i < 6; i++) {
-            String s = args[i];
-            // must be all digits (allows "0", disallows negatives or empty)
-            if (s.isEmpty() || !s.chars().allMatch(Character::isDigit)) {
-                String kind = (i < 3) ? "capacity" : "goal";
-                Jug jug = (i < 3)
-                        ? Jug.values()[i]
-                        : Jug.values()[i - 3];
-                System.err.printf(
-                        "Error: Invalid %s '%s' for jug %s.%n",
-                        kind, s, jug
-                );
+            if (!isDigitsOnly(args[i])) {
+                System.err.printf("Error: Invalid %s '%s' for jug %s.%n",
+                        types[i], args[i], jugNames[i]);
                 System.exit(1);
             }
-            vals[i] = Integer.parseInt(s);
+            vals[i] = Integer.parseInt(args[i]);
         }
 
         // capacities must be > 0
