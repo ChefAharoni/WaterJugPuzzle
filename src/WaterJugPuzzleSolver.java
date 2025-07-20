@@ -1,4 +1,5 @@
 import java.util.LinkedList;
+import java.util.Queue;
 
 public class WaterJugPuzzleSolver
 {
@@ -7,11 +8,14 @@ public class WaterJugPuzzleSolver
         private int a, b, c;
         private final int A_CAP, B_CAP, C_CAP; // capacity for each cap
 
+        // All the states to reach from this state
+        private LinkedList<StepTup> parentStates = new LinkedList<>();
+
 
         public StepTup(int a, int b, int c, int aCap, int bCap, int cCap)
         {
-            this.a = 0; // zero?
-            this.b = 0; // zero?
+            this.a = 0;
+            this.b = 0;
             this.c = c;
 
             this.A_CAP = aCap;
@@ -30,6 +34,27 @@ public class WaterJugPuzzleSolver
             this.A_CAP = old.getA_CAP();
             this.B_CAP = old.getB_CAP();
             this.C_CAP = old.getC_CAP();
+        }
+
+        public void addParentState(StepTup state)
+        {
+            this.parentStates.add(state);
+        }
+
+        public LinkedList<StepTup> getParentStates()
+        {
+            return this.parentStates;
+        }
+
+        /**
+         * Prints the subStates in reverse order
+         */
+        public void printParentStates()
+        {
+            for (int  i = parentStates.size() - 1; i >= 0; i--)
+            {
+                System.out.println(parentStates.get(i).toString());
+            }
         }
 
 
@@ -110,19 +135,22 @@ public class WaterJugPuzzleSolver
     // Amount of traverses to perform for each state
     private final int TRAVERSES_NUM = 6;
 
+    // Numeric representation of the water jugs
     private enum Jug {A, B, C};
+
+    // Pool of all the states to run
+    private Queue<StepTup> taskPool;
 
     StepTup finalState;
 
     //    private final int[][] vars; // Variations
-    private final LinkedList<StepTup>[][] vars; // Variations
+    private final StepTup[][] vars; // Variations
 
     // TODO: change from Integer type to a different type
 //    private LinkedList<StepTup> step;
 
     public WaterJugPuzzleSolver(int a, int b, int c, int d, int e, int f)
     {
-
         // a == 1; b == 2; c == 3; d == 4; e == 5; f == 6 (just numbering)
         // first three parameters (a,b,c) are the three jugs currently (0,0,8 in example)
         // last three (d,e,f) are the goal of the final state
@@ -140,120 +168,45 @@ public class WaterJugPuzzleSolver
         // Variations
         // 2D array of b+1 rows, & a+1 columns
         // +1 is needed because we need to use 0 as well (0 water in jug)
-        vars = new LinkedList[a+1][b+1];
+        vars = new StepTup[a+1][b+1];
 
         // set the final state from the params
         // calling the capacity of the initial jugs (though it shouldn't matter)
-        finalState = new StepTup(d, e, f, a, b, c);
+        StepTup tmpState = new StepTup(d, e, f, d, e, f);
+        finalState = new StepTup(d, e, f, tmpState);
+        this.taskPool = new LinkedList<>();
     }
 
-//    private void resetVarsArr()
-//    { // TODO: fix these loops' constrains (hard-coded values)
-//        for (int i = 0; i < 4; i++)
-//        {
-//            for (int j = 0; j < 6; j++)
-//            {
-//                vars[i][j] = new LinkedList<>();
-//                vars[i][j].add(new StepTup(i, j, 0));
-//                vars[i][j].add(new StepTup(0, 0, 0));
-//            }
-//        }
-//    }
-
-    private void setDemoVals()
+    private void advancePoolBFS()
     {
-        for (int i = 0; i < (a+1); i++)
+        while (!taskPool.isEmpty())
         {
-            for (int j = 0; j < (b+1); j++)
+            StepTup state = taskPool.poll();
+            getWaysBFS(state); // get child's of pool's head
+
+            if (state.compareTo(finalState) == 0)
             {
-                vars[i][j] = new LinkedList<>();
-                vars[i][j].add(new StepTup(i, j, (c-(i+j)),
-                        i, j,0));
+                System.out.println(state.toString());
+                targetReached(state);
+                break;
             }
+            System.out.println("\n----------------------------\n");
         }
     }
 
-    private LinkedList<StepTup> getWaysBFS(StepTup state)
+    private void targetReached(StepTup state)
     {
-        StepTup newState;
-
-        // 1) move c → a
-        newState = moveWater(state, Jug.C, Jug.A);
-        int newA = newState.getA(), newB = newState.getB();
-        if (newState != null && vars[newA][newB] == null ) // not in vars
-        {
-            LinkedList<StepTup> statesList = vars[newA][newB] = new LinkedList<>();
-            statesList.add(newState);
-            return statesList;
-//                BFS_State(vars[newA][newB]);
-        }
-
-        // 2) move b → a
-        newState = moveWater(state, Jug.B, Jug.A);
-        newA = newState.getA();
-        newB = newState.getB();
-        if (state != null && vars[newA][newB] == null ) // not in vars
-        {
-            LinkedList<StepTup> statesList= new LinkedList<>();
-            statesList.add(newState);
-            return statesList;
-//                BFS_State(vars[newA][newB]);
-        }
-
-        // 3) move c → b
-        newState = moveWater(state, Jug.C, Jug.B);
-        newA = newState.getA();
-        newB = newState.getB();
-        if (state != null && vars[newA][newB] == null ) // not in vars
-        {
-            LinkedList<StepTup> statesList= new LinkedList<>();
-            statesList.add(newState);
-            return statesList;
-        }
-
-        // 4) move a → b
-        newState = moveWater(state, Jug.A, Jug.B);
-        newA = newState.getA();
-        newB = newState.getB();
-        if (state != null && vars[newA][newB]  == null ) // not in vars
-        {
-            LinkedList<StepTup> statesList= new LinkedList<>();
-            statesList.add(newState);
-            return statesList;
-        }
-
-        // 5) move b → c
-        newState = moveWater(state, Jug.B, Jug.C);
-        newA = newState.getA();
-        newB = newState.getB();
-        if (state != null && vars[newA][newB]  == null ) // not in vars
-        {
-            LinkedList<StepTup> statesList= new LinkedList<>();
-            statesList.add(newState);
-            return statesList;
-        }
-
-        // 6) move a → c
-        newState = moveWater(state, Jug.A, Jug.C);
-        newA = newState.getA();
-        newB = newState.getB();
-        if (state != null && vars[newA][newB]  == null ) // not in vars
-        {
-            LinkedList<StepTup> statesList= new LinkedList<>();
-            statesList.add(newState);
-            return statesList;
-        }
-
-        return null;
+        state.printParentStates();
     }
 
-    private LinkedList<StepTup> getWaysBFS(StepTup state)
+    private void getWaysBFS(StepTup state)
     {
         StepTup newState;
+        StepTup candidate;
 
         for (int i = 0; i < TRAVERSES_NUM; i++)
         {
-            newState = switch (i)
+            candidate = switch (i)
             {
                 case 0 -> moveWater(state, Jug.C, Jug.A);
                 case 1 -> moveWater(state, Jug.B, Jug.A);
@@ -264,37 +217,20 @@ public class WaterJugPuzzleSolver
                         moveWater(state, Jug.A, Jug.C);
             };
 
-            int newA = newState.getA(), newB = newState.getB();
-            if (state != null && vars[newA][newB]  == null ) // not in vars
+            if (candidate == null) continue;
+            int x = candidate.getA(), y = candidate.getB();
+            if (vars[x][y] == null)
             {
-                LinkedList<StepTup> statesList= new LinkedList<>();
-                statesList.add(newState);
-                return statesList;
+                newState = candidate;
+                taskPool.add(newState);
+                vars[x][y] = newState;
+            }  else
+                newState = vars[x][y];
+
+            newState.addParentState(state);
             }
-        }
     }
 
-    public LinkedList<StepTup> BFS_State(LinkedList<StepTup> StatesList)
-    {
-        // this method should check for the possible ways in this state
-        // and add to the given list more states
-        System.out.println("Given States List: " + StatesList);
-
-        // TODO: change for loop values (b??)
-        for (int i = 0; i < b+1; i++)
-        {
-            System.out.println("Given state in BFS_STate: " + StatesList);
-            getWaysBFS(StatesList);
-        }
-
-        if (StatesList != null && StatesList.getLast() == finalState)
-        {
-            System.out.println("Final state: " + StatesList.getLast());
-            return StatesList; // actually need to iterate over to see solution
-        }
-
-        return null;
-    }
 
     /**
      * Moves water from `from` jug to `to` jug
@@ -340,16 +276,17 @@ public class WaterJugPuzzleSolver
 //        int transferable = amountFrom - (amountFrom - capacityTo);
         int transferable = Math.min(amountFrom, capacityTo - amountTo);
 
+        if (transferable <= 0)
+            return null;
+
         // TODO: check transferable math:max of c out of the capacity
 
         amountFrom -= transferable;
         amountTo   += transferable;
 
-
 //        System.out.println("transferable: " + transferable);
 //        System.out.println("amountFrom: " + amountFrom);
 //        System.out.println("amountTo: " + amountTo);
-
 
         // write back into aAmt, bAmt, cAmt
         switch (from)
@@ -384,9 +321,9 @@ public class WaterJugPuzzleSolver
 //        System.out.println("A amount: " + aAmt);
 //        System.out.println("B amount: " + bAmt);
 //        System.out.println("C amount: " + cAmt);
-        if (amountFrom > 0)
-            System.out.println("Moved " + amountFrom + "oz water from " +
-                    from + " to " + to);
+//        if (amountFrom > 0)
+//            System.out.println("Moved " + amountFrom + "oz water from " +
+//                    from + " to " + to);
 //        StepTup newState = new StepTup(aAmt, bAmt, cAmt, state);
 //        System.out.println(newState);
 //        System.out.println("----------------------------------------\n\n");
@@ -413,17 +350,19 @@ public class WaterJugPuzzleSolver
         }
     }
 
-
     public void solve()
     {
         StepTup startState = new StepTup(a, b, c, a, b, c);
-        LinkedList<StepTup> statesList = getWaysBFS(startState);
+        vars[a][b] = startState; // add init state to matrix
+
+        getWaysBFS(startState);
+        System.out.println("Task Pool: " + taskPool);
 //        setDemoVals();
 //        getWaysBFS();
 //        resetVarsArr();
 
-        BFS_State(statesList);
-        printVarsArr(); // debugger
+        advancePoolBFS();
+//        printVarsArr(); // debugger
     }
 
 
