@@ -104,7 +104,7 @@ public class WaterJugPuzzleSolver
 
         @Override
         public int hashCode() {
-            return (a << 16) | (b << 8) | c;
+            return a * 1000000 + b * 1000 + c; // Faster than bit shifts for small numbers
         }
 
         /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -113,9 +113,9 @@ public class WaterJugPuzzleSolver
          */
     }
 
-    private int a;
-    private int b;
-    private int c; // Caps
+    private final int a;
+    private final int b;
+    private final int c; // Caps
 
     private int d;
     private int e;
