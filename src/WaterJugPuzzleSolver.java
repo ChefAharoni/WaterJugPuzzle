@@ -157,7 +157,6 @@ public class WaterJugPuzzleSolver
             }
 
             getWaysBFS(state); // get child's of pool's head
-
         }
 
         System.out.println("No solution.");
@@ -344,6 +343,13 @@ public class WaterJugPuzzleSolver
     {
         StepTup startState = new StepTup(a, b, c, a, b, c);
         vars[a][b] = startState; // add init state to matrix
+
+        if (startState.compareTo(finalState) == 0)
+        {
+            printSolutionPath(startState);
+            return;
+        }
+
 
         getWaysBFS(startState);
 
