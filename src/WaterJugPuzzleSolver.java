@@ -92,7 +92,11 @@ public class WaterJugPuzzleSolver
         @Override
         public String toString()
         {
-            return "(" + a + ", " + b + ", " + c + ")";
+            return new StringBuilder(12)
+                    .append('(').append(a)
+                    .append(", ").append(b)
+                    .append(", ").append(c)
+                    .append(')').toString();
         }
 
         /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
