@@ -361,7 +361,7 @@ public class WaterJugPuzzleSolver
 
 
     private static int[] checkInput(String[] args) {
-        // check arg count
+        // arg count
         if (args.length != 6) {
             System.err.println(
                     "Usage: java WaterJugPuzzleSolver " +
@@ -370,11 +370,11 @@ public class WaterJugPuzzleSolver
             System.exit(1);
         }
 
-        // check numeric and parse
+        // numeric check & parse
         int[] vals = new int[6];
         for (int i = 0; i < 6; i++) {
             String s = args[i];
-            // reject empty or non-digit strings
+            // must be all digits (allows "0", disallows negatives or empty)
             if (s.isEmpty() || !s.chars().allMatch(Character::isDigit)) {
                 String kind = (i < 3) ? "capacity" : "goal";
                 Jug jug = (i < 3)
@@ -386,33 +386,39 @@ public class WaterJugPuzzleSolver
                 );
                 System.exit(1);
             }
-            // parse once
             vals[i] = Integer.parseInt(s);
         }
 
-        // assign to local names for clarity
-        int capA  = vals[0], capB  = vals[1], capC  = vals[2];
-        int goalA = vals[3], goalB = vals[4], goalC = vals[5];
+        // capacities must be > 0
+        for (int i = 0; i < 3; i++) {
+            if (vals[i] <= 0) {
+                Jug jug = Jug.values()[i];
+                System.err.printf(
+                        "Error: Invalid capacity '%d' for jug %s.%n",
+                        vals[i], jug
+                );
+                System.exit(1);
+            }
+        }
 
-        // validate goal ≤ corresponding capacity
-        if (goalA > capA) {
+        // goal ≤ capacity
+        if (vals[3] > vals[0]) {
             System.err.println("Error: Goal cannot exceed capacity of jug A.");
             System.exit(1);
         }
-        if (goalB > capB) {
+        if (vals[4] > vals[1]) {
             System.err.println("Error: Goal cannot exceed capacity of jug B.");
             System.exit(1);
         }
-        if (goalC > capC) {
+        if (vals[5] > vals[2]) {
             System.err.println("Error: Goal cannot exceed capacity of jug C.");
             System.exit(1);
         }
 
-        // validate conservation: total goal water == capC
-        if (goalA + goalB + goalC != capC) {
+        // conservation: goals sum to capC
+        if (vals[3] + vals[4] + vals[5] != vals[2]) {
             System.err.println(
-                    "Error: Total gallons in goal state must be equal " +
-                            "to the capacity of jug C."
+                    "Error: Total gallons in goal state must be equal to the capacity of jug C."
             );
             System.exit(1);
         }
@@ -422,10 +428,6 @@ public class WaterJugPuzzleSolver
 
     public static void main(String[] args)
     {
-
-//      Manual input for debugging
-//      WaterJugPuzzleSolver solver = new WaterJugPuzzleSolver(3, 5, 8, 0, 4, 4);
-
         int[] v = checkInput(args);
         new WaterJugPuzzleSolver(
                 v[0], v[1], v[2],
